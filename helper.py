@@ -18,7 +18,7 @@ from VideoGet import VideoGet
 from VideoShow import VideoShow
 from VideoZed import VideoZed
 
-
+#TEST TEST TEST
 class DLProgress(tqdm):
   last_block = 0
 
