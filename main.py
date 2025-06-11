@@ -1,3 +1,7 @@
+import sys
+import time
+from glob import glob
+
 import helper
 import os
 import warnings
@@ -12,7 +16,7 @@ from distutils.version import LooseVersion
 from tensorflow.python.platform import gfile
 from tensorflow.core.protobuf import saved_model_pb2
 
-image_shape = (160, 576)
+image_shape = (896, 1600)
 
 def load_vgg(sess, vgg_path):
     """
@@ -316,7 +320,7 @@ def predict_by_model():
     :param vgg_layer4_out: TF Tensor for VGG Layer 4 output
     :param vgg_layer3_out: TF Tensor for VGG Layer 7 output
     """
-    
+
     # Path to vgg model
     vgg_path = os.path.join('./data', 'vgg')
 
@@ -325,7 +329,7 @@ def predict_by_model():
         tf_config = tf.ConfigProto(device_count={'GPU': 0})
     else:
         tf_config = tf.ConfigProto()
-    
+
     with tf.Session(config=tf_config) as sess:
         # Predict the logits
         input_image, keep_prob, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out = load_vgg(sess, vgg_path)
@@ -335,23 +339,45 @@ def predict_by_model():
         # Restore the saved model
         saver = tf.train.Saver()
         saver.restore(sess, path_model)
-        
+
         if pred_data_from == 'video':
             # Predict a video
-            helper.predict_video(path_data, sess, image_shape, logits, keep_prob, input_image)
-        elif pred_data_from == 'image':
+            #helper.predict_video(path_data, sess, image_shape, logits, keep_prob, input_image)
+
+            # TODO: DELTE DELETE DELETE
+            image_folder = os.path.join(path_data, 'image_2')
+            output_dir = os.path.join('./runs', str(int(time.time())))
+            if os.path.exists(output_dir):
+                import shutil
+                shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
+
+            image_files = sorted(glob(os.path.join(image_folder, '*.png')))
+            print(f"Found {len(image_files)} images for batch inference.")
+
+            for image_file in image_files:
+                image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+                street_im = helper.predict(sess, image, input_image, keep_prob, logits, image_shape)
+                output_path = os.path.join(output_dir, os.path.basename(image_file))
+                scipy.misc.imsave(output_path, street_im)
+                print(f"Saved: {output_path}")
+
+            print(f"Batch processing complete. Results saved in {output_dir}")
+
+        if pred_data_from == 'image':
             # Predict a image
             image = scipy.misc.imresize(scipy.misc.imread(path_data), image_shape)
             street_im = helper.predict(sess, image, input_image, keep_prob, logits, image_shape)
-            
+
             current_dir = os.path.dirname(os.path.abspath(__file__))
             imagePath = os.path.join(current_dir, "image_predicted.png")
-            
+
             scipy.misc.imsave(imagePath, street_im)
 
             print(colored("Image save in {}".format(imagePath), 'green'))
         elif pred_data_from == 'zed':
             helper.read_zed(sess, image_shape, logits, keep_prob, input_image)
+
 
 if __name__ == '__main__':
     (disable_gpu,
@@ -368,7 +394,10 @@ if __name__ == '__main__':
      graph_visualize,
      glob_trainig_images_path,
      glob_labels_trainig_image_path) = helper.get_args()
+    if '--visualize' in sys.argv:
+        import visualize_fcn
 
+        sys.exit(0)
     if not path_model:
         all_is_ok()
         run()
