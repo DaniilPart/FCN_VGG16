@@ -1,5 +1,4 @@
 import re
-import time
 import shutil
 import random
 import zipfile
@@ -18,6 +17,7 @@ from urllib.request import urlretrieve
 from VideoGet import VideoGet
 from VideoShow import VideoShow
 from VideoZed import VideoZed
+
 
 class DLProgress(tqdm):
   last_block = 0
@@ -117,50 +117,54 @@ def get_args():
       options.glob_trainig_images_path, 
       options.glob_labels_trainig_image_path)
 
+
 def gen_batch_function(glob_trainig_images_path, glob_labels_trainig_image_path, image_shape):
-  """
-  Generate function to create batches of training data
-  :param data_folder: Path to folder that contains all the datasets
-  :param image_shape: Tuple - Shape of image
-  :return:
-  """
-  def get_batches_fn(batch_size):
-    """
-    Create batches of training data
-    :param batch_size: Batch Size
-    :return: Batches of training data
-    """
-  
-    image_paths = glob(glob_trainig_images_path)
-    # TODO: verify a generic way to construct this batch dataset
-    label_paths = {
-        re.sub(r'_(lane|road)_', '_', os.path.basename(path)): path 
-        for path in glob(glob_labels_trainig_image_path)}
-    
-    background_color = np.array([255, 0, 0])
-    random.shuffle(image_paths)
-    for batch_i in range(0, len(image_paths), batch_size):
-      images = []
-      gt_images = []
-      for image_file in image_paths[batch_i:batch_i+batch_size]:
-        gt_image_file = label_paths[os.path.basename(image_file)]
+    def get_batches_fn(batch_size):
+        image_paths = glob(glob_trainig_images_path)
+        print(f"Found image_paths: {len(image_paths)}")
+        label_paths = {
+            re.sub(r'_(lane|road)_', '_', os.path.basename(path)): path
+            for path in glob(glob_labels_trainig_image_path)}
+        print(f"Found label_paths: {len(label_paths)}")
+        print(f"Example label_paths keys: {list(label_paths.keys())[:5]}")
 
-        image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
-        gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
+        background_color = np.array([255, 0, 0])
+        random.shuffle(image_paths)
+        for batch_i in range(0, len(image_paths), batch_size):
+            images = []
+            gt_images = []
+            for image_file in image_paths[batch_i:batch_i + batch_size]:
+                gt_image_file = label_paths[os.path.basename(image_file)]
 
-        ############gt_image is a jpg file with extension .png############
-        if gt_image[0].shape[1] != 3:
-          raise ValueError("GT IMAGE MUST CONTAIN 3 CHANNELS (JPG FILE)")
+                image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+                gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
 
-        gt_bg = np.all(gt_image == background_color, axis=2)
-        gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
-        gt_image = np.concatenate((gt_bg, np.invert(gt_bg)), axis=2)
+                if gt_image.shape[2] != 3:
+                    raise ValueError("GT IMAGE MUST CONTAIN 3 CHANNELS (JPG FILE)")
 
-        images.append(image)
-        gt_images.append(gt_image)
+                gt_bg = np.all(gt_image == background_color, axis=2)
+                gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
+                assert not np.isnan(gt_bg).any(), "NaN found in gt_bg before reshape"
+                assert not np.isnan(gt_image).any(), "NaN found in gt_image after reshape"
+                gt_image = np.concatenate((gt_bg, np.invert(gt_bg)), axis=2)
 
-      yield np.array(images), np.array(gt_images)
-  return get_batches_fn
+                images.append(image)
+                gt_images.append(gt_image)
+
+            images_np = np.array(images)
+            gt_images_np = np.array(gt_images)
+            print('Batch images shape:', images_np.shape)
+            print('Batch labels shape:', gt_images_np.shape)
+            print('Batch images min/max:', images_np.min(), images_np.max())
+            print('Batch labels min/max:', gt_images_np.min(), gt_images_np.max())
+            print('Batch labels unique:', np.unique(gt_images_np))
+            assert not np.isnan(images_np).any(), "NaN in images"
+            assert not np.isnan(gt_images_np).any(), "NaN in labels"
+            gt_images_np = np.array(gt_images).astype(np.float32)
+            print('Batch labels unique after astype:', np.unique(gt_images_np))
+            yield images_np, gt_images_np
+
+    return get_batches_fn
 
 
 def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape):
@@ -176,7 +180,7 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
   """
   for image_file in glob(os.path.join(data_folder, 'image_2', '*.png')):
     start = time.clock()
-    
+
     image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
 
     street_im = predict(sess, image, image_pl, keep_prob, logits, image_shape)
@@ -184,21 +188,21 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     timeCount = (time.time() - start)
     print (image_file + " process time: " + str(timeCount))
     subprocess.call("echo {} - {} >> ./data/data_road/time.txt".format(image_file, timeCount), shell=True)
-    
+
     yield os.path.basename(image_file), np.array(street_im)
 
 def predict(sess, image, image_pl, keep_prob, logits, image_shape):
     im_softmax = sess.run(
         [tf.nn.softmax(logits)],
         {keep_prob: 1.0, image_pl: [image]})
-    
+
     im_softmax = im_softmax[0][:, 1].reshape(image_shape[0], image_shape[1])
     segmentation = (im_softmax > 0.5).reshape(image_shape[0], image_shape[1], 1)
     mask = np.dot(segmentation, np.array([[0, 255, 0, 127]]))
     mask = scipy.misc.toimage(mask, mode="RGBA")
     street_im = scipy.misc.toimage(image)
     street_im.paste(mask, box=None, mask=mask)
-    
+
     return street_im
 
 def read_zed(sess, image_shape, logits, keep_prob, input_image):
@@ -211,7 +215,7 @@ def read_zed(sess, image_shape, logits, keep_prob, input_image):
       print("Waiting for zed")
       count+=1
       time.sleep(1)
-      
+
     video_shower = VideoShow(video_zed.frame).start()
 
     while True:
@@ -225,7 +229,7 @@ def read_zed(sess, image_shape, logits, keep_prob, input_image):
 
 def predict_video(data_dir, sess, image_shape, logits, keep_prob, input_image):
     print('Predicting Video...')
-    
+
     video_getter = VideoGet(data_dir, sess, image_shape, logits, keep_prob, input_image).start()
     video_shower = VideoShow(video_getter.frame).start()
 
@@ -237,7 +241,7 @@ def predict_video(data_dir, sess, image_shape, logits, keep_prob, input_image):
 
         frame = video_getter.frame
         video_shower.frame = frame
-        
+
 def save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image):
   # Make folder for current run
   output_dir = os.path.join(runs_dir, str(int(time.time())))

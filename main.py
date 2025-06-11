@@ -216,6 +216,12 @@ def run():
             glob_trainig_images_path, 
             glob_labels_trainig_image_path,
             image_shape)
+        batches = list(get_batches_fn(batch_size))
+        print('Total batches:', len(batches))
+        if len(batches) == 0:
+            print('ОШИБКА: Генератор батчей возвращает 0 батчей! Проверь пути к данным и соответствие файлов.')
+            import sys
+            sys.exit(1)
 
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
@@ -264,7 +270,7 @@ def run():
             print('Var {}: {}'.format(i, var))
 
         if not os.path.exists(folderToSaveModel):
-            os.makedirs(path)
+            os.makedirs(folderToSaveModel)
 
         pathSaveModel = os.path.join(folderToSaveModel, "model.ckpt")
         pathSaveModel = saver.save(sess, pathSaveModel)

@@ -1,6 +1,5 @@
 import cv2
 import helper
-import pyzed.sl as sl
 import numpy as np
 from threading import Thread
 
@@ -12,6 +11,8 @@ class VideoZed:
     def __init__(self, sess, image_shape, logits, keep_prob, input_image):
         self.frame = None
         self.stopped = False
+        import pyzed.sl as sl
+        self.sl = sl
         self.sess = sess
         self.image_shape = image_shape
         self.logits = logits
