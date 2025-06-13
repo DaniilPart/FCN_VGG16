@@ -16,7 +16,7 @@ from distutils.version import LooseVersion
 from tensorflow.python.platform import gfile
 from tensorflow.core.protobuf import saved_model_pb2
 
-image_shape = (896, 1600)
+image_shape = (1280, 960)
 
 def load_vgg(sess, vgg_path):
     """
