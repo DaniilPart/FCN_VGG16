@@ -109,4 +109,4 @@ data/vgg
 
 env-RoadSeg
 
-model/*
+model/*mask.py
