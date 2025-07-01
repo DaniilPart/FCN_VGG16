@@ -20,16 +20,16 @@ Semantic Segmentation - It label the pixels of a road in images using a Fully Co
 ## Neural network archtecture
 The project start loading a vgg model so implements an FCN - Fully Convolutional Network 
 
-!['./images/vgg-FCN.png'](./images/vgg-FCN.png)
+!['./images/vgg-FCN.png'](./images/image.png)
 
 More details about how VGG16 is used in this archtechture to converte it to a fully convolutional network, you can read ['this paper']('https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf').
 
 ## Some results
- ![](./images/1.png)
+ ![](./images/5408874559391790576.jpg)
 
- ![](./images/2.png)
+ ![](./images/5408874559391790581.jpg)
 
- ![](./images/3.png)
+ ![](./images/5408978261377153025.jpg)
 
 
 ## Setup
@@ -41,7 +41,7 @@ Make sure you have the following is installed:
  - [SciPy](https://www.scipy.org/)
 
 #### Dataset
-The project will download the [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) dataset from [here](http://www.cvlibs.net/download.php?file=data_road.zip). It will extract the files in `data` folder.  This will create the folder `data_road` with all the training a test images.
+The project was trained on a [custom](https://drive.google.com/drive/folders/13xNjJIIEa9op5PmXYs06TOM-JeXUeW2D?usp=sharing) road dataset and on [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php). It will extract the files in `data` folder.  This will create the folder `data_road` with all the training a test images.
 
 #### Add a custom Dataset
 Add images in data/data_road/training/
