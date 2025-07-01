@@ -128,8 +128,6 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    # TODO: Implement function KK-DONE
-
     # KK Get the logits of the network
     logits = get_logits(nn_last_layer, num_classes)
 
@@ -222,9 +220,6 @@ def run():
             print('ОШИБКА: Генератор батчей возвращает 0 батчей! Проверь пути к данным и соответствие файлов.')
             import sys
             sys.exit(1)
-
-        # OPTIONAL: Augment Images for better results
-        #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
         # Build NN using load_vgg, layers, and optimize function KK-DONE
 
