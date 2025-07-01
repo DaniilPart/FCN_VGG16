@@ -16,7 +16,7 @@ from distutils.version import LooseVersion
 from tensorflow.python.platform import gfile
 from tensorflow.core.protobuf import saved_model_pb2
 
-image_shape = (1280, 960)
+image_shape = (352, 640)
 
 def load_vgg(sess, vgg_path):
     """
@@ -223,7 +223,6 @@ def run():
         batches = list(get_batches_fn(batch_size))
         print('Total batches:', len(batches))
         if len(batches) == 0:
-            print('ОШИБКА: Генератор батчей возвращает 0 батчей! Проверь пути к данным и соответствие файлов.')
             import sys
             sys.exit(1)
 
@@ -295,16 +294,12 @@ def all_is_ok():
     else:
         print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
 
-    print("\n\nTesting load_vgg function......")
     tests.test_load_vgg(load_vgg, tf)
     
-    print("\n\nTesting layers function......")
     tests.test_layers(layers)
 
-    print("\n\nTesting optimize function......")
     tests.test_optimize(optimize)
 
-    print("\n\nTesting train_nn function......")
     tests.test_train_nn(train_nn)
 
 def predict_by_model():
