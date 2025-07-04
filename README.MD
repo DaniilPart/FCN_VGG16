@@ -1,5 +1,6 @@
 # Semantic Segmentation Fully Convolutional Neural Network
 Semantic Segmentation - It label the pixels of a road in images using a Fully Convolutional Network (FCN).
+Original source : https://github.com/juancardoso/road-semantic-segmentation
 
 # Index
 - [Prerequisites](#Prerequisites)
@@ -108,5 +109,6 @@ Options:
     --disable_gpu DISABLE_GPU, Disable predict by GPU
 ```
 
-#### Running at google colabotory - GPU 4free
-Open this [link](https://colab.research.google.com/drive/1bwYKqgZIKlMRuTqD0HdU3DeHJzH9xwe4)
+#### Remaining unsolved problems include poor road recognition when the captured image is over-exposed, and small artefacts that still appear on railings and tombstones.
+!['./images/vgg-FCN.png'](./images/666.png)
+!['./images/vgg-FCN.png'](./images/777.png)
