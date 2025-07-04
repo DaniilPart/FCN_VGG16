@@ -12,7 +12,6 @@ Original source : https://github.com/juancardoso/road-semantic-segmentation
     - [Add a custom Dataset](#Add-a-custom-Dataset)
 - [Start](#Start)
     - [Usage](#Usage)
-    - [google colabotory - GPU 4free](#Running-at-google-colabotory---GPU-4free)
 
 ## Prerequisites
 ```
