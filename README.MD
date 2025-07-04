@@ -110,5 +110,5 @@ Options:
 ```
 
 #### Remaining unsolved problems include poor road recognition when the captured image is over-exposed, and small artefacts that still appear on railings and tombstones.
-!['./images/vgg-FCN.png'](./images/666.png)
-!['./images/vgg-FCN.png'](./images/777.png)
+[](./images/666.jpeg)
+[](./images/777.png)
